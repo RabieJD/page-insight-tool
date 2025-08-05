@@ -163,5 +163,3 @@ Test app running :
 ```bash
 make test-app
 ```
-
-## 📈 Future Improvements
