@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Insight Tool</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Page Insight Tool</h1>
+            <p>Analyze web pages and extract valuable information</p>
+        </header>
+
+        <main>
+            <form method="POST" action="/analyze" class="analysis-form" id="analysisForm">
+                <div class="form-group">
+                    <label for="url">Enter URL to analyze:</label>
+                    <input type="url" id="url" name="url" placeholder="https://example.com" required>
+                </div>
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <span class="btn-text">Analyze Page</span>
+                    <span class="btn-loading" style="display: none;">⏳ Analyzing...</span>
+                </button>
+            </form>
+
+            <div class="loading-message" id="loadingMessage" style="display: none;">
+                <p>🔍 Analyzing page and checking links... This may take a few seconds for pages with many links.</p>
+            </div>
+
+            {{if .Error}}
+            <div class="error-message">
+                <h3>❌ Analysis Error</h3>
+                <p>{{.Error}}</p>
+            </div>
+            {{else if .URL}}
+            <div class="results">
+                <h2>📊 Analysis Results</h2>
+
+                <div class="result-grid">
+                    <div class="result-card">
+                        <h3>📄 Page Information</h3>
+                        <p><strong>URL:</strong> <a href="{{.URL}}" target="_blank">{{.URL}}</a></p>
+                        <p><strong>Title:</strong> {{if .Title}}{{.Title}}{{else}}No title found{{end}}</p>
+                        <p><strong>HTML Version:</strong> {{.HTMLVersion}}</p>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>📝 Headings Structure</h3>
+                        {{if .HeadingsCount}}
+                            {{range $heading, $count := .HeadingsCount}}
+                                {{if gt $count 0}}
+                                <p><strong>{{$heading}}:</strong> {{$count}}</p>
+                                {{end}}
+                            {{end}}
+                        {{else}}
+                            <p>No headings found</p>
+                        {{end}}
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🔗 Link Analysis</h3>
+                        <p><strong>Internal Links:</strong> {{.InternalLinks}}</p>
+                        <p><strong>External Links:</strong> {{.ExternalLinks}}</p>
+                        <p><strong>Inaccessible Links:</strong> {{.InaccessibleLinks}}</p>
+
+                        <div class="note">
+                            <p><small>Accessibility is checked for up to 500 links to maintain performance.</small></p>
+                            <p><small>Some links may return 403 Forbidden — they exist but block automated access.</small></p>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🔐 Security Analysis</h3>
+                        <p><strong>Login Form:</strong>
+                            {{if .HasLoginForm}}
+                                <span class="badge badge-warning">Found</span>
+                            {{else}}
+                                <span class="badge badge-success">Not Found</span>
+                            {{end}}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </main>
+
+        <script>
+            // Show loading indicator when form is submitted
+            document.getElementById('analysisForm').addEventListener('submit', function() {
+                document.getElementById('submitBtn').disabled = true;
+                document.querySelector('.btn-text').style.display = 'none';
+                document.querySelector('.btn-loading').style.display = 'inline';
+                document.getElementById('loadingMessage').style.display = 'block';
+            });
+        </script>
+
+        <footer>
+            <p>&copy; 2024 Page Insight Tool. Built with Go and modern web technologies.</p>
+        </footer>
+    </div>
+</body>
+</html>

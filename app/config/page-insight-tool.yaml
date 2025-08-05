@@ -1,0 +1,13 @@
+# Page Insight Tool Configuration
+
+Local:
+  Host: localhost
+  Port: "8080"
+
+Dev:
+  Host: localhost
+  Port: "8080"
+
+Production:
+  Host: "0.0.0.0"
+  Port: "8080"
