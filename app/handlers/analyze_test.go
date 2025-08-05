@@ -108,7 +108,7 @@ func TestAnalyzeHandler_ValidURL(t *testing.T) {
 func TestAnalyzePage_InvalidURL(t *testing.T) {
 	analysis := analyzePage("invalid-url")
 
-	if analysis.Error == "" {
+	if analysis.Error.Message == "" {
 		t.Error("expected error for invalid URL, got none")
 	}
 }
@@ -116,12 +116,12 @@ func TestAnalyzePage_InvalidURL(t *testing.T) {
 func TestAnalyzePage_PrivateIP(t *testing.T) {
 	analysis := analyzePage("http://192.168.1.1")
 
-	if analysis.Error == "" {
+	if analysis.Error.Message == "" {
 		t.Error("expected error for private IP, got none")
 	}
 
-	if !strings.Contains(analysis.Error, "access to private network denied") {
-		t.Errorf("expected private network error, got: %s", analysis.Error)
+	if !strings.Contains(analysis.Error.Message, "access to private network denied") {
+		t.Errorf("expected private network error, got: %s", analysis.Error.Message)
 	}
 }
 

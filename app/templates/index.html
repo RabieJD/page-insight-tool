@@ -29,10 +29,22 @@
                 <p>🔍 Analyzing page and checking links... This may take a few seconds for pages with many links.</p>
             </div>
 
-            {{if .Error}}
+            {{if .Error.Message}}
             <div class="error-message">
                 <h3>❌ Analysis Error</h3>
-                <p>{{.Error}}</p>
+                {{if .Error.Link}}
+                <p><strong>Link:</strong> {{.Error.Link}}</p>
+                {{end}}
+
+                <p><strong>Message:</strong> {{.Error.Message}}</p>
+
+                {{if .Error.Status}}
+                <p><strong>Status:</strong> {{.Error.Status}}</p>
+                {{end}}
+
+                {{if .Error.Explanation}}
+                <p><strong>Explanation:</strong> {{.Error.Explanation}}</p>
+                {{end}}
             </div>
             {{else if .URL}}
             <div class="results">

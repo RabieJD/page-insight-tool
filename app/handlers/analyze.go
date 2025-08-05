@@ -22,6 +22,13 @@ const (
 	maxWorkers      = 10
 )
 
+type LinkError struct {
+	Link        string
+	Status      int
+	Message     string
+	Explanation string
+}
+
 // PageAnalysis holds the result of analyzing a web page
 type PageAnalysis struct {
 	URL               string
@@ -32,7 +39,7 @@ type PageAnalysis struct {
 	ExternalLinks     int
 	InaccessibleLinks int
 	HasLoginForm      bool
-	Error             string
+	Error             LinkError
 }
 
 // IndexHandler renders the form
@@ -72,18 +79,18 @@ func analyzePage(urlStr string) PageAnalysis {
 
 	parsedURL, err := url.Parse(urlStr)
 	if err != nil {
-		result.Error = "Invalid URL"
+		result.Error = LinkError{Message: "Invalid URL"}
 		return result
 	}
 
 	if err := validateURL(parsedURL); err != nil {
-		result.Error = err.Error()
+		result.Error = LinkError{Message: err.Error()}
 		return result
 	}
 
-	doc, err := fetchPage(parsedURL.String())
-	if err != nil {
-		result.Error = fmt.Sprintf("Failed to fetch page: %v", err)
+	doc, linkError := fetchPage(parsedURL.String())
+	if linkError != nil {
+		result.Error = *linkError
 		return result
 	}
 
@@ -121,27 +128,40 @@ func validateURL(u *url.URL) error {
 }
 
 // fetchPage retrieves and parses the remote page
-func fetchPage(urlStr string) (*goquery.Document, error) {
+func fetchPage(urlStr string) (*goquery.Document, *LinkError) {
+	linkError := &LinkError{
+		Link: urlStr,
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
 	if err != nil {
-		return nil, err
+		linkError.Message = err.Error()
+		return nil, linkError
 	}
 	req.Header.Set("User-Agent", UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		linkError.Message = err.Error()
+		return nil, linkError
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("status %d", resp.StatusCode)
+		linkError.Message = http.StatusText(resp.StatusCode)
+		linkError.Status = resp.StatusCode
+		linkError.Explanation = helper.GetExplanation(resp.StatusCode)
+		return nil, linkError
 	}
 
-	return goquery.NewDocumentFromReader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		linkError.Message = err.Error()
+		return nil, linkError
+	}
+	return doc, nil
 }
 
 // extractTitle gets the page <title>
